@@ -66,9 +66,9 @@ jobs:
         with:
           context: .
           push: true
-          tags: HariniV02/my-fastapi-app:${{ github.sha }}
+          tags: hariniv02/my-fastapi-app:${{ github.sha }}
           platforms: linux/amd64,linux/arm64
-          cache-from: type=registry,ref=HariniV02/my-fastapi-app:cache
+          cache-from: type=registry,ref=hariniv02/my-fastapi-app:cache
           cache-to: type=inline,mode=max
           build-args: |
             QR_CODE_DIR=/myapp/qr_codes
@@ -78,7 +78,7 @@ jobs:
       - name: Scan the Docker image with Trivy
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'HariniV02/my-fastapi-app:${{ github.sha }}'
+          image-ref: 'hariniv02/my-fastapi-app:${{ github.sha }}'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
