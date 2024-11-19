@@ -9,6 +9,7 @@ on:
       - main
 
 jobs:
+  # Job to test the code using pytest
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -45,6 +46,7 @@ jobs:
           name: pytest-results
           path: ./tests
 
+  # Job to build and push the Docker image
   build-and-push-docker:
     needs: test
     runs-on: ubuntu-latest
@@ -74,6 +76,7 @@ jobs:
             FILL_COLOR=red
             BACK_COLOR=white
 
+  # Job to scan the Docker image for vulnerabilities using Trivy
   trivy-scan:
     needs: build-and-push-docker
     runs-on: ubuntu-latest
@@ -86,11 +89,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-trivy-cache-
 
-      - name: Authenticate to GitHub Container Registry
+      - name: Authenticate to DockerHub
         env:
-          TRIVY_USERNAME: ${{ secrets.GITHUB_ACTOR }}
-          TRIVY_PASSWORD: ${{ secrets.GHCR_PAT }}
-        run: echo $TRIVY_PASSWORD | docker login ghcr.io -u $TRIVY_USERNAME --password-stdin
+          DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+        run: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
 
       - name: Run Trivy scan with retries
         run: |
@@ -101,7 +104,7 @@ jobs:
           done
 
       - name: Run Trivy scan with action
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@latest
         with:
           image-ref: hariniv02/my-fastapi-app:${{ github.sha }}
           format: table
@@ -109,6 +112,7 @@ jobs:
           ignore-unfixed: true
           severity: CRITICAL,HIGH
 
+  # Deployment job
   deploy:
     needs: trivy-scan
     runs-on: ubuntu-latest
